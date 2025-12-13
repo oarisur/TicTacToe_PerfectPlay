@@ -1,0 +1,16 @@
+// .hintrc
+
+{
+  /* * Specifies that this configuration extends and inherits settings from the base 'development' profile.
+   * All properties not defined here will be pulled from the 'development' configuration.
+   */
+  "extends": [
+    "development"
+  ],
+  "hints": {
+    /* * Disables warnings or hints specifically related to finding or verifying 'apple-touch-icons'.
+     * This is useful when running builds where icon generation is skipped or managed externally.
+     */
+    "apple-touch-icons": "off"
+  }
+}

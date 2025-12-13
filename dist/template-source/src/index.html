@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicTacToe: Perfect Play</title>
+    
+    <link rel="icon" type="image/png" sizes="196x196" href="assets/icons/favicon-196.png">
+    <link rel="apple-touch-icon" href="assets/icons/apple-icon-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-startup-image" href="assets/icons/apple-splash-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="assets/icons/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"> 
+    <link rel="apple-touch-startup-image" href="assets/icons/apple-splash-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+    
+    <link rel="stylesheet" href="css/styles.css">
+    
+    </head>
+<body class="flex items-start md:items-center justify-center p-4">
+
+    <audio id="audio-move" src="assets/sounds/move.mp3"></audio>
+    <audio id="audio-win" src="assets/sounds/win.mp3"></audio>
+    <audio id="audio-draw" src="assets/sounds/draw.mp3"></audio>
+    <audio id="audio-loss" src="assets/sounds/loss.mp3"></audio>
+    <audio id="audio-ai-start" src="assets/sounds/ai_start.mp3"></audio>
+
+    <div class="flex flex-col items-center p-6 sm:p-8 rounded-2xl shadow-2xl space-y-4 max-w-xl w-full relative app-container">
+        
+        <button id="theme-toggle" 
+                class="rounded-full font-semibold transition-all bg-accent hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300 shadow-md z-20"
+                aria-label="Toggle dark and light theme">
+            <span id="theme-icon">☀️</span>
+        </button>
+
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-wider color-title pt-4">TicTacToe: Perfect Play</h1>
+        
+        <div class="w-full flex justify-between items-start px-4 py-3 bg-primary rounded-xl shadow-inner options-bar-responsive">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-8 w-full sm:w-auto">
+                
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm font-medium text-gray-400">Mode:</span>
+                    <div class="custom-selector-wrapper" id="game-mode-wrapper">
+                        <input type="radio" id="mode-pvai" name="game-mode" value="pvai" checked>
+                        <label for="mode-pvai">Vs. AI</label>
+                        <input type="radio" id="mode-pvp" name="game-mode" value="pvp">
+                        <label for="mode-pvp">Vs. Player</label>
+                    </div>
+                </div>
+
+                <div id="difficulty-wrapper" class="flex items-center space-x-2 transition-opacity duration-300">
+                    <span class="text-sm font-medium text-gray-400">AI:</span>
+                    <div class="custom-selector-wrapper" id="difficulty-selector-wrapper">
+                        <input type="radio" id="diff-easy" name="difficulty" value="easy">
+                        <label for="diff-easy">Easy</label>
+                        <input type="radio" id="diff-medium" name="difficulty" value="medium" checked>
+                        <label for="diff-medium">Medium</label>
+                        <input type="radio" id="diff-hard" name="difficulty" value="hard">
+                        <label for="diff-hard">Hard</label>
+                    </div>
+                </div>
+            </div>
+            <button id="mute-toggle" aria-label="Toggle sound effects" 
+                    class="rounded-full transition-colors bg-secondary hover:bg-primary focus:outline-none focus:ring-2 focus:ring-gray-500 shadow-sm">
+                🔊
+            </button>
+        </div>
+
+        <div id="stats-container" class="w-full flex justify-end space-x-4 sm:space-x-6 text-xs sm:text-sm font-semibold p-1 text-gray-400">
+            <div id="stats-pvai" class="flex space-x-4">
+                <span class="text-green-400">W: <span id="stat-wins">0</span></span>
+                <span class="text-red-400">L: <span id="stat-losses">0</span></span>
+                <span class="text-yellow-400">D: <span id="stat-draws">0</span></span>
+            </div>
+            <div id="stats-pvp" class="hidden text-sm font-semibold text-gray-400 space-x-4">
+                <span class="text-player-X">X W: <span id="pvp-x-wins">0</span></span>
+                <span class="text-player-O">O W: <span id="pvp-o-wins">0</span></span>
+                <span class="text-yellow-400">D: <span id="pvp-draws">0</span></span>
+            </div>
+        </div>
+        
+        <div id="status-display" class="w-full flex justify-center space-x-6 text-2xl font-extrabold h-10 items-center">
+            <span id="player-x-turn" class="player-indicator text-player-X active-X">Player X</span>
+            <span class="color-text opacity-50 text-base font-normal">|</span>
+            <span id="player-o-turn" class="player-indicator text-player-O">AI</span>
+        </div>
+        
+        <div id="message" class="text-base sm:text-lg font-semibold text-center h-6 flex items-center justify-center transition-colors text-gray-400">Ready to Play!</div>
+
+        <div class="board" id="game-board">
+            <div class="cell" data-index="0" role="button" aria-label="Cell 1 of 9" data-marker=""></div>
+            <div class="cell" data-index="1" role="button" aria-label="Cell 2 of 9" data-marker=""></div>
+            <div class="cell" data-index="2" role="button" aria-label="Cell 3 of 9" data-marker=""></div>
+            <div class="cell" data-index="3" role="button" aria-label="Cell 4 of 9" data-marker=""></div>
+            <div class="cell" data-index="4" role="button" aria-label="Cell 5 of 9" data-marker=""></div>
+            <div class="cell" data-index="5" role="button" aria-label="Cell 6 of 9" data-marker=""></div>
+            <div class="cell" data-index="6" role="button" aria-label="Cell 7 of 9" data-marker=""></div>
+            <div class="cell" data-index="7" role="button" aria-label="Cell 8 of 9" data-marker=""></div>
+            <div class="cell" data-index="8" role="button" aria-label="Cell 9 of 9" data-marker=""></div>
+        </div>
+
+        <button id="reset-button" 
+                class="px-8 py-3 bg-blue-500 text-white font-extrabold rounded-xl shadow-xl hover:bg-blue-600 transition-all transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-300 w-full md:w-auto">
+            Start New Game
+        </button>
+
+        <div id="custom-message-box" class="message-box">
+            <div class="message-content-card" id="message-content-card">
+                <p id="message-content" class="text-3xl sm:text-4xl font-extrabold mb-6 color-text"></p>
+                <button id="close-message-box" 
+                        class="px-8 py-3 bg-emerald-500 text-white rounded-full font-bold shadow-lg hover:bg-emerald-600 transition-colors">
+                    Play Again
+                </button>
+            </div>
+        </div>
+
+        <div id="resume-prompt" class="message-box">
+            <div class="message-content-card">
+                <p class="text-2xl sm:text-3xl font-extrabold mb-6 color-text">Continue Last Game?</p>
+                <div class="flex space-x-4 justify-center">
+                    <button id="resume-button" 
+                            class="px-8 py-3 bg-blue-500 text-white rounded-full font-bold shadow-lg hover:bg-blue-600 transition-colors">
+                        Resume
+                    </button>
+                    <button id="new-game-button" 
+                            class="px-8 py-3 bg-red-500 text-white rounded-full font-bold shadow-lg hover:bg-red-600 transition-colors">
+                        New Game
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./app.bundle.js"></script>
+</body>
+</html>

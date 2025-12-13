@@ -1,0 +1,80 @@
+# .github/workflows/build-electron.yml
+name: Build and Release Electron Desktop App
+
+on:
+  # Triggers the workflow when a new GitHub Release is created.
+  release:
+    types: [created]
+
+jobs:
+  prepare:
+    # This job prepares the application source code (web build + Electron entry files)
+    # and uploads it as an artifact for the release jobs.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment 🔨
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          # Use npm cache to speed up dependency installation.
+          cache: 'npm'
+
+      - name: Install Project Dependencies 📥
+        run: npm install
+
+      - name: Run Electron Build Script 🛠️
+        # This script should handle the web application build and copy all
+        # necessary files into the 'dist/app' directory.
+        run: npm run build:electron
+
+      - name: Archive prepared app directory 📦
+        # Upload the pre-built application source code as an artifact.
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-app-source
+          path: dist/app
+
+  release:
+    # This job downloads the prepared source code and uses electron-builder
+    # to create platform-specific native installers and publish them to the release.
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Define the target operating systems for native builds.
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    
+    steps:
+      - name: Checkout Repository 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment 🔨
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install Project Dependencies 📥
+        # Dependencies are installed here to ensure all necessary native modules
+        # (if any) are built for the current runner's OS.
+        run: npm install
+
+      - name: Download prepared app directory 📥
+        # Retrieve the pre-built application source from the 'prepare' job.
+        uses: actions/download-artifact@v4
+        with:
+          name: electron-app-source
+          path: dist/app
+
+      - name: Build & Publish App with electron-builder 🚀
+        run: npm run electron-builder -- --publish always
+        env:
+          # Required for publishing to the GitHub Release.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Example for code signing (uncomment and configure if needed):
+          # APPLE_ID: ${{ secrets.APPLE_ID }} 
+          # APPLE_ID_PASS: ${{ secrets.APPLE_ID_PASS }}
